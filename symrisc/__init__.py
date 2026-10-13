@@ -8,7 +8,7 @@ The package provides a reference toolchain for the architecture:
 * :mod:`symrisc.cpu`       - signal-level single-cycle datapath model
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from .assembler import AssemblerError, Program, assemble, disassemble
 from .cpu import CPU, MachineError

@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-10-14
+
+### Added
+- Interactive datapath visualizer (`web/`): animated single-cycle datapath
+  with per-wire values, control-signal display, instruction field decoding,
+  plain-language explanations of each cycle, step back, run, breakpoints,
+  an in-browser editor and assembler, shareable program links, and light and
+  dark themes. Deployed to GitHub Pages by `.github/workflows/pages.yml`.
+- `web/js/symrisc.js`, a JavaScript port of the reference model, kept
+  identical to the Python package by a conformance test (examples, error
+  cases, faults and 300 random programs).
+- `DataMemory.words(..., signed=True)`.
+
 ## [1.0.0] - 2026-10-14
 
 ### Added
@@ -42,5 +55,6 @@ uses [Semantic Versioning](https://semver.org/).
 - Original coursework: Phase 1 ISA design report, Phase 2 datapath and
   control report, opcode table.
 
+[1.1.0]: https://github.com/malfallah/symrisc/releases/tag/v1.1.0
 [1.0.0]: https://github.com/malfallah/symrisc/releases/tag/v1.0.0
 [0.1.0]: https://github.com/malfallah/symrisc/releases/tag/v0.1.0

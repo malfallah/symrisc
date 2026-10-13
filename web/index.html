@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SymRISC-32 Datapath Visualizer</title>
+  <meta name="description" content="Step through SymRISC-32 programs on an animated single-cycle datapath: every wire, multiplexer and control signal, cycle by cycle.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e8590c'/%3E%3Ctext x='16' y='24' font-family='monospace' font-size='22' font-weight='700' text-anchor='middle' fill='white'%3E!%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="https://github.com/malfallah/symrisc" title="SymRISC-32 on GitHub">
+      <span class="logo" aria-hidden="true">!</span>
+      <span class="brand-text"><strong>SymRISC-32</strong> <span>Datapath Visualizer</span></span>
+    </a>
+    <div class="toolbar" role="toolbar" aria-label="Simulation controls">
+      <label class="visually-hidden" for="example">Example program</label>
+      <select id="example"></select>
+      <div class="group">
+        <button id="btn-reset" type="button" title="Reset (R)">Reset</button>
+        <button id="btn-back" type="button" title="Step back (←)">◀ Back</button>
+        <button id="btn-step" type="button" class="primary" title="Step one cycle (→)">Step ▶</button>
+        <button id="btn-run" type="button" title="Run / pause (Space)">Run</button>
+        <button id="btn-end" type="button" title="Run to the end">To end ⏭</button>
+      </div>
+      <label class="speed" title="Cycles per second while running">
+        <span>Speed</span>
+        <input id="speed" type="range" min="1" max="30" value="3">
+        <output id="speed-out">3/s</output>
+      </label>
+      <div class="group">
+        <button id="btn-radix" type="button" title="Toggle decimal / hexadecimal values">Dec</button>
+        <button id="btn-share" type="button" title="Copy a link to this program">Share</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel program" aria-label="Program">
+      <div class="tabs" role="tablist">
+        <button id="tab-listing" role="tab" type="button" aria-selected="true">Listing</button>
+        <button id="tab-edit" role="tab" type="button" aria-selected="false">Edit</button>
+      </div>
+      <div id="listing" class="listing" role="tabpanel" aria-labelledby="tab-listing"></div>
+      <div id="editor-pane" class="editor-pane" role="tabpanel" aria-labelledby="tab-edit" hidden>
+        <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Assembly source"></textarea>
+        <div class="editor-actions">
+          <button id="btn-assemble" type="button" class="primary">Assemble &amp; load</button>
+          <span class="hint">Ctrl + Enter</span>
+        </div>
+      </div>
+      <pre id="asm-error" class="asm-error" hidden></pre>
+      <p class="hint listing-hint">Click a line to toggle a breakpoint.</p>
+    </section>
+
+    <section class="panel datapath" aria-label="Datapath">
+      <div class="status">
+        <span id="status-pill" class="pill">Ready</span>
+        <span>cycle <strong id="status-cycle">0</strong></span>
+        <span>PC <strong id="status-pc">0x0000</strong></span>
+        <code id="status-ins" class="status-ins"></code>
+      </div>
+
+      <div class="svg-scroll">
+      <svg id="dp" viewBox="0 0 1260 720" role="img" aria-labelledby="dp-title">
+        <title id="dp-title">SymRISC-32 single-cycle datapath</title>
+        <defs>
+          <marker id="arrow-idle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="arrow-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="arrow-ctrl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+
+        <!-- ============================== wires ============================== -->
+        <g id="wires">
+          <path id="w-next" class="wire" d="M1205,610 H1242 V16 H14 V360 H30"/>
+          <path id="w-pc" class="wire" d="M80,360 H130"/>
+          <path id="w-pc-add" class="wire" d="M100,360 V655 H130"/>
+          <path id="w-four" class="wire" d="M110,685 H130"/>
+          <path id="w-pc4" class="wire" d="M180,670 H1160 V585 H1180"/>
+          <path id="w-inst" class="wire" d="M250,360 H280"/>
+          <path id="w-bus" class="wire bus" d="M280,90 V620"/>
+          <path id="w-op" class="wire" d="M280,90 H380"/>
+          <path id="w-var1" class="wire" d="M280,262 H420"/>
+          <path id="w-var2" class="wire" d="M280,302 H420"/>
+          <path id="w-dest" class="wire" d="M280,342 H420"/>
+          <path id="w-var2-dst" class="wire" d="M280,302 H330 V405 H350"/>
+          <path id="w-dest-dst" class="wire" d="M280,342 H310 V435 H350"/>
+          <path id="w-wr" class="wire" d="M375,420 H420"/>
+          <path id="w-imm" class="wire" d="M280,560 H430"/>
+          <path id="w-shamt" class="wire" d="M280,620 H680 V425 H690"/>
+          <path id="w-rd1" class="wire" d="M600,270 H750"/>
+          <path id="w-rd2" class="wire" d="M600,355 H640"/>
+          <path id="w-rd2-mem" class="wire" d="M600,355 H612 V520 H900"/>
+          <path id="w-se" class="wire" d="M510,560 H628 V405 H640"/>
+          <path id="w-alusrc" class="wire" d="M665,380 H690"/>
+          <path id="w-aluB" class="wire" d="M715,402 H750"/>
+          <path id="w-rd3-mem" class="wire" d="M600,450 H900"/>
+          <path id="w-rd3-pc" class="wire" d="M600,450 H870 V635 H1180"/>
+          <path id="w-result" class="wire" d="M830,380 H1080"/>
+          <path id="w-memout" class="wire" d="M1040,470 H1080"/>
+          <path id="w-wb" class="wire" d="M1105,425 H1130 V700 H395 V470 H420"/>
+          <path id="w-zero" class="wire ctrl" d="M830,280 H930 V245 H960"/>
+          <path id="w-less" class="wire ctrl" d="M830,310 H875"/>
+          <path id="w-less-n" class="wire ctrl" d="M911,310 H940 V295 H960"/>
+          <path id="w-bsrc" class="wire ctrl" d="M985,270 H995 V262 H1014"/>
+          <path id="w-negb" class="wire ctrl" d="M990,330 H1002 V290 H1014"/>
+          <path id="w-xor" class="wire ctrl" d="M1050,275 H1065 V265 H1082"/>
+          <path id="w-br" class="wire ctrl" d="M1060,350 H1070 V295 H1082"/>
+          <path id="w-pcsrc" class="wire ctrl" d="M1120,280 H1192 V560"/>
+        </g>
+
+        <!-- junction dots -->
+        <g class="dots">
+          <circle id="d-pc" cx="100" cy="360" r="4"/>
+          <circle id="d-var2" cx="330" cy="302" r="4"/>
+          <circle id="d-dest" cx="310" cy="342" r="4"/>
+          <circle id="d-rd2" cx="612" cy="355" r="4"/>
+          <circle id="d-rd3" cx="870" cy="450" r="4"/>
+        </g>
+
+        <!-- ============================== units ============================== -->
+        <g id="u-pc" class="unit">
+          <rect x="30" y="330" width="50" height="60" rx="6"/>
+          <text class="u-title" x="55" y="365">PC</text>
+        </g>
+        <g id="u-add" class="unit">
+          <path d="M130,640 L180,655 L180,685 L130,700 L130,678 L140,670 L130,662 Z"/>
+          <text class="u-title" x="160" y="675">+</text>
+          <text class="port" x="98" y="689">4</text>
+        </g>
+        <g id="u-im" class="unit">
+          <rect x="130" y="290" width="120" height="140" rx="6"/>
+          <text class="u-title" x="190" y="352">Instruction</text>
+          <text class="u-title" x="190" y="370">memory</text>
+        </g>
+        <g id="u-ctrl" class="unit ctrl-unit">
+          <rect x="380" y="24" width="250" height="176" rx="14"/>
+          <text class="u-title" x="505" y="48">Control</text>
+          <g id="ctrl-signals"></g>
+        </g>
+        <g id="m-regdst" class="unit mux">
+          <rect x="350" y="392" width="25" height="56" rx="12"/>
+          <text class="port" x="362" y="409">0</text>
+          <text class="port" x="362" y="439">1</text>
+        </g>
+        <g id="u-rf" class="unit">
+          <rect x="420" y="240" width="180" height="270" rx="6"/>
+          <text class="port start" x="428" y="266">Read reg 1</text>
+          <text class="port start" x="428" y="306">Read reg 2</text>
+          <text class="port start" x="428" y="346">Read reg 3</text>
+          <text class="port start" x="428" y="424">Write reg</text>
+          <text class="port start" x="428" y="474">Write data</text>
+          <text class="port end" x="592" y="274">Read data 1</text>
+          <text class="port end" x="592" y="359">Read data 2</text>
+          <text class="port end" x="592" y="454">Read data 3</text>
+          <text class="u-title" x="510" y="498">Registers</text>
+        </g>
+        <g id="u-se" class="unit">
+          <ellipse cx="470" cy="560" rx="40" ry="24"/>
+          <text class="u-title small" x="470" y="557">Sign-</text>
+          <text class="u-title small" x="470" y="571">extend</text>
+        </g>
+        <g id="m-alusrc" class="unit mux">
+          <rect x="640" y="340" width="25" height="80" rx="12"/>
+          <text class="port" x="652" y="359">0</text>
+          <text class="port" x="652" y="409">1</text>
+        </g>
+        <g id="m-shift" class="unit mux">
+          <rect x="690" y="365" width="25" height="75" rx="12"/>
+          <text class="port" x="702" y="384">0</text>
+          <text class="port" x="702" y="429">1</text>
+        </g>
+        <g id="u-alu" class="unit">
+          <path d="M750,230 L830,270 L830,410 L750,450 L750,365 L768,340 L750,315 Z"/>
+          <text class="u-title" x="796" y="330">ALU</text>
+          <text id="alu-op" class="alu-op" x="796" y="360"></text>
+          <text class="port end" x="826" y="284">Zero</text>
+          <text class="port end" x="826" y="314">Less</text>
+        </g>
+        <g id="g-not" class="unit gate">
+          <path d="M875,298 L875,322 L903,310 Z"/>
+          <circle cx="907" cy="310" r="4"/>
+        </g>
+        <g id="m-bsrc" class="unit mux">
+          <rect x="960" y="230" width="25" height="80" rx="12"/>
+          <text class="port" x="972" y="249">1</text>
+          <text class="port" x="972" y="299">0</text>
+        </g>
+        <g id="g-xor" class="unit gate">
+          <path d="M1014,248 Q1030,275 1014,302 Q1040,302 1050,275 Q1040,248 1014,248 Z"/>
+          <path class="xor-back" d="M1008,248 Q1024,275 1008,302"/>
+        </g>
+        <g id="g-and" class="unit gate">
+          <path d="M1082,252 H1100 A28,28 0 0 1 1100,308 H1082 Z"/>
+        </g>
+        <g id="u-dm" class="unit">
+          <rect x="900" y="430" width="140" height="140" rx="6"/>
+          <text class="port start" x="908" y="454">Address</text>
+          <text class="port start" x="908" y="524">Write data</text>
+          <text class="port end" x="1032" y="474">Read data</text>
+          <text class="u-title" x="970" y="558">Data memory</text>
+        </g>
+        <g id="m-m2r" class="unit mux">
+          <rect x="1080" y="360" width="25" height="130" rx="12"/>
+          <text class="port" x="1092" y="384">0</text>
+          <text class="port" x="1092" y="474">1</text>
+        </g>
+        <g id="m-pc" class="unit mux">
+          <rect x="1180" y="560" width="25" height="100" rx="12"/>
+          <text class="port" x="1192" y="589">0</text>
+          <text class="port" x="1192" y="639">1</text>
+        </g>
+
+        <!-- ======================== field labels ======================== -->
+        <g class="fields">
+          <text x="288" y="84">[31:27]</text>
+          <text x="288" y="256">[26:21] Var1</text>
+          <text x="288" y="296">[20:15] Var2</text>
+          <text x="288" y="336">[14:9] Dest</text>
+          <text x="288" y="554">[14:0] imm</text>
+          <text x="288" y="614">[8:4] shamt</text>
+        </g>
+
+        <!-- ===================== control-signal badges ===================== -->
+        <g class="badges">
+          <text id="b-regDst" x="362" y="384"></text>
+          <text id="b-aluSrc" x="652" y="332"></text>
+          <text id="b-shifting" x="702" y="357"></text>
+          <text id="b-memToReg" x="1092" y="508"></text>
+          <text id="b-branchSrc" x="972" y="222"></text>
+          <text id="b-negBranch" class="end" x="986" y="334"></text>
+          <text id="b-branch" class="end" x="1056" y="354"></text>
+          <text id="b-pcsrc" x="1150" y="272"></text>
+          <text id="b-regWrite" x="510" y="232"></text>
+          <text id="b-mem" x="970" y="422"></text>
+        </g>
+
+        <!-- ========================== wire values ========================== -->
+        <g class="values">
+          <text id="v-pc" x="55" y="408"></text>
+          <text id="v-inst" x="190" y="448"></text>
+          <text id="v-pc4" x="196" y="662" class="start"></text>
+          <text id="v-wr" x="379" y="413" class="start"></text>
+          <text id="v-rd1" x="606" y="264" class="start"></text>
+          <text id="v-rd2" x="606" y="349" class="start"></text>
+          <text id="v-rd3" x="606" y="444" class="start"></text>
+          <text id="v-imm" x="518" y="552" class="start"></text>
+          <text id="v-shamt" x="560" y="614" class="start"></text>
+          <text id="v-aluB" x="720" y="458" class="start"></text>
+          <text id="v-zero" x="836" y="274" class="start"></text>
+          <text id="v-less" x="836" y="304" class="start"></text>
+          <text id="v-result" x="840" y="374" class="start"></text>
+          <text id="v-memout" x="1046" y="464" class="start"></text>
+          <text id="v-wd" x="760" y="694"></text>
+          <text id="v-target" x="880" y="628" class="start"></text>
+          <text id="v-next" x="1212" y="602" class="start"></text>
+        </g>
+      </svg>
+      </div>
+
+      <div id="decode" class="decode" aria-label="Instruction fields"></div>
+      <div id="explain" class="explain" aria-live="polite"></div>
+      <div class="legend">
+        <span><i class="sw sw-data"></i>active data path</span>
+        <span><i class="sw sw-ctrl"></i>branch decision</span>
+        <span><i class="sw sw-idle"></i>unused this cycle</span>
+        <span><b class="x">X</b> don't-care signal</span>
+      </div>
+    </section>
+
+    <section class="panel state" aria-label="Machine state">
+      <div class="panel-head">
+        <h2>Registers</h2>
+        <label class="toggle"><input id="only-nonzero" type="checkbox"> non-zero only</label>
+      </div>
+      <div id="registers" class="registers"></div>
+      <div class="panel-head">
+        <h2>Data memory</h2>
+      </div>
+      <div id="memory" class="memory"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Keys: <kbd>→</kbd> step · <kbd>←</kbd> back · <kbd>Space</kbd> run/pause · <kbd>R</kbd> reset</span>
+    <span><a href="https://github.com/malfallah/symrisc">GitHub</a> · <a href="https://github.com/malfallah/symrisc/blob/main/docs/isa-spec.md">ISA spec</a> · <a href="https://github.com/malfallah/symrisc/blob/main/docs/microarchitecture.md">Microarchitecture</a></span>
+  </footer>
+
+  <script src="js/symrisc.js"></script>
+  <script src="js/examples.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

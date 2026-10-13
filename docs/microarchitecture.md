@@ -1,6 +1,6 @@
 # SymRISC-32 Single-Cycle Microarchitecture
 
-This document describes the single-cycle datapath and the control unit that implement the [SymRISC-32 ISA](isa-spec.md). The signal-level model in [`symrisc/cpu.py`](../symrisc/cpu.py) and [`symrisc/control.py`](../symrisc/control.py) mirrors it wire for wire. Run any program with `symrisc run --trace --signals` to watch the control signals cycle by cycle.
+This document describes the single-cycle datapath and the control unit that implement the [SymRISC-32 ISA](isa-spec.md). The signal-level model in [`symrisc/cpu.py`](../symrisc/cpu.py) and [`symrisc/control.py`](../symrisc/control.py) mirrors it wire for wire. Run any program with `symrisc run --trace --signals` to watch the control signals cycle by cycle, or open the [interactive visualizer](https://malfallah.github.io/symrisc/) to see the datapath animate.
 
 ## Contents
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "symrisc"
-version = "1.0.0"
+version = "1.1.0"
 description = "SymRISC-32: a 32-bit RISC ISA with symbolic mnemonics, plus an assembler, disassembler and signal-level single-cycle datapath simulator."
 readme = "README.md"
 license = { text = "Apache-2.0" }

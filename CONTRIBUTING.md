@@ -32,6 +32,10 @@ ruff format .                               # format
   `symrisc/isa.py`; the assembler, disassembler and control unit derive from it.
 - **Test what you change.** Bug fixes come with a regression test; new
   instructions need encoding, semantics and round-trip coverage.
+- **Keep both models in sync.** The visualizer runs `web/js/symrisc.js`, a port
+  of the Python package. Any behavioural change must be made in both;
+  `tests/test_web_conformance.py` (needs Node.js) fails if they diverge. After
+  editing an example, run `python scripts/build_web_examples.py`.
 - **Keep the model faithful.** `symrisc/cpu.py` mirrors the datapath wire for
   wire. If you change how a signal is routed, change the diagram description too.
 

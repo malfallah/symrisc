@@ -10,6 +10,8 @@ with a working assembler, disassembler, and signal-level single-cycle CPU simula
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)](pyproject.toml)
 
+**[▶ Open the datapath visualizer](https://malfallah.github.io/symrisc/)**
+
 [ISA specification](docs/isa-spec.md) ·
 [Microarchitecture](docs/microarchitecture.md) ·
 [Errata](docs/errata.md) ·
@@ -31,8 +33,13 @@ SymRISC-32 is a load/store RISC architecture with 25 instructions, two instructi
 
 The repository contains the full specification, the datapath and control-unit design, and a dependency-free Python toolchain. The simulator does not just interpret instructions: it evaluates the same multiplexers and control signals as the hardware diagram, cycle by cycle.
 
+<p align="center">
+  <a href="https://malfallah.github.io/symrisc/"><img src="docs/images/visualizer.png" alt="SymRISC-32 datapath visualizer: a B&lt; instruction lights up the ALU subtract path and the branch unit" width="900"></a>
+</p>
+
 ## Highlights
 
+- **Interactive datapath visualizer.** [Run programs in your browser](https://malfallah.github.io/symrisc/) and watch every wire, multiplexer and control signal light up, cycle by cycle. You can step backwards, set breakpoints, read a plain-language explanation of each cycle, and share a program as a link.
 - **Executable specification.** One table in [`symrisc/isa.py`](symrisc/isa.py) drives the assembler, the disassembler, the control unit, and the documentation.
 - **Signal-level simulation.** Every cycle drives `RegDst`, `ALUSrc`, `Shifting`, `MemtoReg`, `BranchSrc`, `NegBranch` and `ALUOp` through the real datapath. `--trace --signals` shows each instruction's control word.
 - **Verified design.** Branches are checked against every pair of 8 boundary values, including `INT_MIN`/`INT_MAX`. A C reference program is checked against its hand-compiled assembly, and each example runs twice to show that don't-care (`X`) control signals never affect the result.
@@ -159,6 +166,19 @@ PCSrc = Branch · ((BranchSrc ? Zero : ¬Less) ⊕ NegBranch)
 
 The **[microarchitecture document](docs/microarchitecture.md)** has the wiring, the full control-unit truth table, the ALU encoding, and per-instruction walkthroughs.
 
+## Datapath visualizer
+
+The [visualizer](https://malfallah.github.io/symrisc/) is a static web app in [`web/`](web), with no build step and no dependencies. You can also open `web/index.html` directly from disk.
+
+- **Watch the hardware work.** Paths the current instruction uses are animated, and unused paths fade out. The highlighting is derived from the control signals alone, so it always matches what the control unit selects.
+- **Every value on every wire.** Read data 1/2/3, the sign-extended immediate, ALU operand B, the ALU result, the `Zero`/`Less` flags, write-back data, PC + 4, and the branch target.
+- **Explains itself.** Each cycle comes with a step-by-step explanation, e.g. *"BranchSrc = 0 selects ¬Less = 0; 0 ⊕ NegBranch (1) = 1, AND Branch (1) → PCSrc = 1"*.
+- **Debugger controls.** Step, step back, run at an adjustable speed, run to the end, and click-to-toggle breakpoints. Keys: `→` `←` `Space` `R`.
+- **Write your own.** Edit and assemble programs in the browser (with `file:line` error messages), then share them as a link.
+- **Light and dark themes**, with a layout that adapts down to phone width.
+
+The browser runs a JavaScript port of the reference model. A conformance test runs both implementations on the examples, error cases, and 300 random programs, and requires them to agree on every cycle.
+
 ## Toolchain
 
 ```text
@@ -203,6 +223,7 @@ The suite (`python -m unittest discover -s tests -t .`) checks:
 - **Semantics.** Truncating signed division, division by zero, `INT_MIN / −1`, logical vs. arithmetic shift, writes to `!Z`, and alignment faults.
 - **Programs.** The demo program against a Python transliteration of its C source, Fibonacci, and bubble sort.
 - **Don't-care safety.** Each example runs with `X = 0` and `X = 1` and must produce identical results.
+- **Browser parity.** The JavaScript model behind the visualizer must match the Python model cycle for cycle on the examples, the assembler error cases, faults, and 300 random programs. This needs Node.js and is skipped without it.
 
 CI runs the suite on Linux, Windows, and macOS across Python 3.10–3.14.
 
@@ -216,13 +237,15 @@ symrisc/
 │   ├── control.py           control-unit truth table and ALU
 │   ├── cpu.py               signal-level single-cycle datapath model
 │   └── cli.py               `symrisc asm | dis | run`
+├── web/                     datapath visualizer (static site, deployed to GitHub Pages)
 ├── examples/                assembly programs (+ the C source of the demo)
-├── tests/                   unittest suite
+├── scripts/                 build helpers (bundles examples for the visualizer)
+├── tests/                   unittest suite (+ JS conformance harness)
 └── docs/
     ├── isa-spec.md          normative ISA specification
     ├── microarchitecture.md datapath, control, ALU, branch unit
     ├── errata.md            defects found in the original design and their fixes
-    ├── images/              datapath figure
+    ├── images/              datapath figure, visualizer screenshot
     └── reports/             original Phase 1 / Phase 2 coursework reports (PDF)
 ```
 
@@ -232,7 +255,7 @@ symrisc/
 - [ ] A five-stage pipelined variant with forwarding and hazard detection
 - [ ] A jump-and-link instruction and a documented calling convention using `!RA`/`!SP`/`!FP`
 - [ ] A Logisim Evolution circuit of the datapath
-- [ ] A browser-based datapath visualiser driven by the trace output
+- [x] A browser-based datapath visualizer
 
 Contributions toward any of these are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
