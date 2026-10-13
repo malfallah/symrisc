@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use SymRISC-32, please cite it as below."
+title: "SymRISC-32: a 32-bit RISC instruction set with symbolic mnemonics"
+abstract: >-
+  A load/store RISC instruction-set architecture with 25 instructions, two
+  instruction formats and 64 registers, together with its single-cycle
+  datapath design and a reference assembler, disassembler and signal-level
+  simulator.
+type: software
+authors:
+  - family-names: "Al Fallah"
+    given-names: "Mohammad"
+  - family-names: "Ali-Ahmad"
+    given-names: "Hussien"
+  - family-names: "Delbani"
+    given-names: "Bilal"
+  - family-names: "Alizzi"
+    given-names: "Mohammad"
+version: 1.0.0
+date-released: "2026-10-14"
+license: Apache-2.0
+repository-code: "https://github.com/malfallah/symrisc"
+keywords:
+  - computer architecture
+  - instruction set architecture
+  - RISC
+  - datapath
+  - assembler
+  - simulator

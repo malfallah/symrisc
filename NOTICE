@@ -1,0 +1,7 @@
+SymRISC-32
+Copyright 2022-2026 Mohammad Al Fallah and the SymRISC-32 contributors
+
+This product includes the SymRISC-32 instruction-set and datapath design
+originally created by Mohammad Al Fallah, Hussien Ali-Ahmad, Bilal Delbani
+and Mohammad Alizzi as coursework for CSC320 Computer Organization (2022).
+The original design reports are included in docs/reports/.

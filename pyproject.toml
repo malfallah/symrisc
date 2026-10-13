@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symrisc"
+version = "1.0.0"
+description = "SymRISC-32: a 32-bit RISC ISA with symbolic mnemonics, plus an assembler, disassembler and signal-level single-cycle datapath simulator."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Mohammad Al Fallah" },
+    { name = "Hussien Ali-Ahmad" },
+    { name = "Bilal Delbani" },
+    { name = "Mohammad Alizzi" },
+]
+keywords = ["isa", "risc", "cpu", "computer-architecture", "assembler", "simulator", "datapath", "education"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Assembly",
+    "Topic :: Education",
+    "Topic :: Software Development :: Assemblers",
+    "Topic :: System :: Hardware",
+]
+
+[project.urls]
+Homepage = "https://github.com/malfallah/symrisc"
+Documentation = "https://github.com/malfallah/symrisc/tree/main/docs"
+Issues = "https://github.com/malfallah/symrisc/issues"
+
+[project.scripts]
+symrisc = "symrisc.cli:main"
+
+[tool.setuptools]
+packages = ["symrisc"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
